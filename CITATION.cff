@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+message: "If you use CLO, please cite it as below."
+title: "CLO: Ontology, Rules and Tools for Multi-Cloud Label Governance"
+version: "9.3"
+date-released: "2026-11-14"
+license: Apache-2.0
+type: dataset
+authors:
+  - family-names: "Naji"
+    given-names: "Mouncef"
+    affiliation: "Devoteam"
+    # orcid: "https://orcid.org/0000-0000-0000-0000"   # TODO
+  # TODO: add the co-authors in paper order
+keywords: [ontology, OWL 2, multi-cloud, cloud governance, resource tagging]
