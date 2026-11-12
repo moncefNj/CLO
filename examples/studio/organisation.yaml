@@ -1,0 +1,79 @@
+# The company example of the paper, as a governance team would write it (no RDF).
+# tools/clo_inputs.py turns this file and inventory.csv into CLO's A-Box;
+# tools/clo_demo.py --org organisation.yaml --inventory inventory.csv builds CLO Studio from them.
+
+organisation: Company
+
+accounts:                      # account: the unit it belongs to (here, directly the company)
+  aws-prod: Company
+  azure-sub: Company
+  gcp-project: Company
+
+teams:                         # team: the roles its members play
+  Payments: {plays: [Development]}
+  Platform: {plays: [Platform engineering, Operations]}
+  Data:     {plays: [Development]}
+  FinOps:   {plays: [FinOps]}
+
+roles:                         # role: the keys it needs on every resource it governs
+  FinOps: [cost-center]
+  Security: [data-classification]
+  Operations: [owner, environment]
+  Development: [app]
+  Platform engineering: [managed-by]
+
+keys:                          # how a missing value may be filled in; [] = never guessed
+  cost-center: [inherit, team-default]
+  environment: [inherit, account-default]
+  owner: [inherit]
+  app: [inherit, team-default]
+  data-classification: []
+
+synonyms:                      # canonical key: spellings that mean the same
+  environment: [env]
+
+policies:                      # a policy is the roles it serves, attached somewhere
+  Shared labelling standard:
+    serves: [FinOps, Security, Operations]
+    attached_to: [Company]
+  Payments team standard:
+    serves: [Development]
+    attached_to: [Payments]
+
+what_if:                       # CLO Studio switches (at most two); "close the world" and
+  - id: role                   # "team-majority repairs" are always offered
+    label: Sustainability joins the shared standard
+    hint: A new governance role needs carbon-scope; the shared policy now serves it. No rule is edited.
+    roles: {Sustainability: [carbon-scope]}
+    policies: {Shared labelling standard: {serves: [Sustainability]}}
+  - id: key
+    label: Security also needs data-owner
+    hint: "One more key for one role: every policy serving Security now requires it."
+    roles: {Security: [data-owner]}
+
+tour:                          # the guided scenario shown in CLO Studio
+  persona: a FinOps analyst preparing the monthly chargeback report
+  steps:
+    - title: Your backlog
+      text: View the estate as FinOps. Only resources with a FinOps finding stay highlighted, and the coverage bar shows that 3 of the 8 resources the shared standard governs carry cost-center.
+      lens: FinOps
+      select: pay-receipts
+    - title: Why is cost-center required here?
+      text: "pay-receipts, a GCP bucket of the Payments team, has no cost-center. The page shows why it should: the shared standard reaches the bucket through its account and the company (chain C-4), and FinOps needs the key (chain C-9)."
+      select: pay-receipts
+      focus: cost-center
+    - title: Is it really missing?
+      text: The bucket's record came from a response that returns the whole tag set, so the absence is real. vol-scratch is different. Its listing never returns tags, so CLO concludes nothing about it and re-reads it, where an export-based check would report every key missing.
+      select: vol-scratch
+    - title: Can it be filled in, and with what?
+      text: cost-center declares the owning team's value as a source, and Payments writes CC-1001 on both resources that carry the key, so CLO proposes it with a dry-run command. data-classification has no source and is never guessed.
+      select: pay-receipts
+      focus: cost-center
+    - title: What if values were guessed?
+      text: Turn on team-majority repairs. 11 values are proposed instead of 1, among them a data-classification copied from the team's habit. Your report would inherit such a wrong value silently, because the finding is closed.
+      switch: naive
+      select: vm-build
+      focus: data-classification
+    - title: Enforce what can be enforced
+      text: The derived standard is compiled into AWS Config, Azure Policy and Cloud Custodian. The Payments team policy has no native equivalent and stays in CLO's audit.
+      tab: enforce

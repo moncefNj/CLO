@@ -1,0 +1,48 @@
+# Extending CLO without editing a rule (paper, Listing 1). Load after examples/company_example.ttl.
+#   python3 tests/test_extend.py
+@prefix clo:  <http://example.org/clo/ontology/clo#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# A new provider and its tag constraints: data, no rule
+clo:PrivateCloud a clo:CloudProvider , owl:NamedIndividual ;
+    clo:providerName "openstack" ; clo:supportsLabels true ;
+    clo:hasProviderConstraint clo:PrivateCloud_C .
+clo:PrivateCloud_C a clo:ProviderConstraint , owl:NamedIndividual ;
+    clo:caseSensitive true ; clo:keyMaxLength 255 .
+
+# A new resource type, mapped to an existing base kind
+clo:rt_os_server a clo:ResourceType , owl:NamedIndividual ;
+    clo:resourceTypeName "openstack_server" ;
+    clo:implementsBaseKind clo:InstanceKind ; clo:hostedBy clo:PrivateCloud ;
+    clo:labelingSupport "full" .
+
+# An asset with no fitting base kind: a new kind in an existing category
+clo:LicenceKind a owl:Class , owl:NamedIndividual ;
+    rdfs:subClassOf clo:BaseKind ; clo:categoryOf clo:Governance .
+clo:rt_licence a clo:ResourceType , owl:NamedIndividual ;
+    clo:resourceTypeName "internal_licence" ;
+    clo:implementsBaseKind clo:LicenceKind ; clo:hostedBy clo:PrivateCloud ;
+    clo:labelingSupport "full" .
+
+# An internal convention: who needs the key, how it may be filled, its spellings
+clo:ComplianceRole a clo:GovernanceRole , owl:NamedIndividual ; rdfs:label "Compliance" ;
+    clo:needsLabel clo:k_retention .
+clo:pol_shared clo:servesRole clo:ComplianceRole .
+clo:k_retention a clo:LabelKey , owl:NamedIndividual ; clo:keyName "retention" ;
+    clo:valueSource "inherit" .
+clo:k_keep_until a clo:LabelKey , owl:NamedIndividual ; clo:keyName "keep-until" .
+clo:sg_retention a clo:SynonymGroup , owl:NamedIndividual ;
+    clo:canonicalKey "retention" ; clo:hasMember clo:k_retention , clo:k_keep_until .
+
+# An account in the private cloud, and two resources on it
+clo:acct_private a clo:Account , owl:NamedIndividual ; rdfs:label "private-dc" ; clo:orgPartOf clo:org_root .
+clo:os_vm a clo:CloudResource , owl:NamedIndividual ;
+    clo:resourceId "os-build-01" ; clo:hasResourceType clo:rt_os_server ;
+    clo:belongsToAccount clo:acct_private ; clo:ownedBy clo:team_platform ; clo:recordComplete true ;
+    clo:hasLabel clo:l_os1 .
+clo:l_os1 a clo:Label , owl:NamedIndividual ; clo:hasLabelKey clo:k_keep_until ; clo:hasLabelValue clo:v_7y .
+clo:v_7y a clo:LabelValue , owl:NamedIndividual ; clo:valueName "7y" .
+clo:lic_db a clo:CloudResource , owl:NamedIndividual ;
+    clo:resourceId "lic-oracle-3" ; clo:hasResourceType clo:rt_licence ;
+    clo:belongsToAccount clo:acct_private ; clo:ownedBy clo:team_platform ; clo:recordComplete true .

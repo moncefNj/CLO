@@ -1,0 +1,11 @@
+id,type,account,owner,complete,tags,part_of
+i-pay-01,aws_ec2_instance,aws-prod,Payments,true,env=prod;owner=alice;cost-center=CC-1001;app=checkout;data-classification=internal,
+db-pay,aws_rds_instance,aws-prod,Payments,true,env=prod;owner=alice;cost-center=CC-1001,
+pay-receipts,gcp_bucket,gcp-project,Payments,true,env=prod;data-classification=confidential,
+vm-build,azure_compute_virtual_machine,azure-sub,Platform,true,environment=prod;owner=bob;managed-by=terraform,
+gke-shared,gcp_container_cluster,gcp-project,Platform,true,environment=prod;owner=bob;cost-center=CC-2002;data-classification=internal,
+vpc-core,aws_vpc,aws-prod,Platform,true,managed-by=terraform,
+sql-analytics,gcp_sql_database_instance,gcp-project,Data,true,,
+i-legacy-7,aws_ec2_instance,aws-prod,,true,,
+vol-scratch,aws_ec2_volume,aws-prod,Data,false,,
+admins,aws_iam_group,aws-prod,Platform,true,,
